@@ -1,11 +1,5 @@
 import { LoginForm } from "./LoginForm";
-
-// Left-panel image: drop your own smart-lock photo at /public/door.jpg to override;
-// falls back to a stock image, then a dark gradient.
-const SIDE_IMAGE =
-  "linear-gradient(to top, rgba(8,8,15,0.80) 0%, rgba(8,8,15,0.25) 45%, rgba(8,8,15,0.12) 100%), " +
-  "url('/door.jpg'), " +
-  "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=80')";
+import { LeftPanel } from "./LeftPanel";
 
 export default async function LoginPage({
   searchParams,
@@ -16,40 +10,9 @@ export default async function LoginPage({
 
   return (
     <div className="grid min-h-screen md:grid-cols-2">
-      {/* LEFT — full-height smart-lock image */}
-      <div
-        className="relative hidden md:block"
-        style={{ backgroundImage: SIDE_IMAGE, backgroundSize: "cover", backgroundPosition: "center" }}
-      >
-        {/* LazyRabbit brand — top left */}
-        <div className="absolute left-8 top-7 flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://www.lazyrabbit.in/rabbit_icon.png"
-              alt="LazyRabbit"
-              className="h-full w-full object-contain"
-            />
-          </span>
-          <span className="font-display text-lg font-semibold text-white drop-shadow">LazyRabbit</span>
-        </div>
-
-        {/* Tagline — bottom left */}
-        <div className="absolute bottom-14 left-10 right-10">
-          <h2 className="font-display text-5xl font-bold leading-[1.05] text-white drop-shadow-lg">
-            Automate
-            <br />
-            everything.
-          </h2>
-          <p className="mt-4 max-w-sm text-base leading-relaxed text-white/85 drop-shadow">
-            From lead to done — Yale service handled in just a few clicks.
-          </p>
-          <div className="mt-6 flex gap-1.5">
-            <span className="h-1.5 w-7 rounded-full bg-white" />
-            <span className="h-1.5 w-2.5 rounded-full bg-white/40" />
-            <span className="h-1.5 w-2.5 rounded-full bg-white/40" />
-          </div>
-        </div>
+      {/* LEFT — full-height rotating smart-lock slideshow */}
+      <div className="relative hidden overflow-hidden md:block">
+        <LeftPanel />
       </div>
 
       {/* RIGHT — full-height form */}
