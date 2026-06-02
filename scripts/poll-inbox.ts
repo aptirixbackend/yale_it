@@ -1,5 +1,5 @@
-// Manually polls the inbox for recent CALL LOG emails (read or unread),
-// ingests them (dedup by ticket id), and leaves the leads in the DB.
+// Processes recent emails FROM a given sender (default naveeeen.nex@gmail.com),
+// regardless of subject. Lists what it finds, ingests valid call-logs.
 // Run: node --env-file=.env.local scripts/poll-inbox.ts
 import { createClient } from "@supabase/supabase-js";
 import { ImapFlow } from "imapflow";
@@ -13,7 +13,9 @@ const s = createClient(
   { auth: { persistSession: false } }
 );
 
+const FROM = process.env.YALE_FROM || "naveeeen.nex@gmail.com";
 const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
 const client = new ImapFlow({
   host: "imap.gmail.com",
   port: 993,
@@ -26,8 +28,8 @@ await client.connect();
 try {
   const lock = await client.getMailboxLock("INBOX");
   try {
-    const uids = (await client.search({ subject: "CALL LOG", since }, { uid: true })) || [];
-    console.log(`CALL LOG emails in last 7 days: ${uids.length}`);
+    const uids = (await client.search({ from: FROM, since }, { uid: true })) || [];
+    console.log(`Emails from ${FROM} in last 7 days: ${uids.length}`);
 
     let created = 0;
     for (const uid of uids) {
@@ -41,6 +43,8 @@ try {
         const r = await ingestParsedLead(s, parsed, body, "email");
         if (r.created) created++;
         console.log(`     ${r.created ? "CREATED lead" : "already exists (dedup)"}`);
+      } else {
+        console.log("     skipped (not a parseable call-log)");
       }
     }
     console.log(`\nCreated ${created} new lead(s).`);

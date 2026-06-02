@@ -22,11 +22,11 @@ export interface PollSummary {
  * One connection per run; safe to call from a cron route or manually.
  */
 export async function runYaleInboxPoll(supabase: SupabaseClient): Promise<PollSummary> {
-  // Match Yale call-log emails by subject within a recent window, regardless of
-  // read/unread state (the owner may open an email before the cron runs).
-  // De-dup by Yale ticket id keeps re-reads from creating duplicate leads.
-  const subjectFilter = process.env.YALE_SUBJECT || "CALL LOG";
-  const fromFilter = process.env.YALE_FROM;
+  // Match by SENDER (the forwarding address) within a recent window, regardless
+  // of read/unread state. Subject filter is optional. De-dup by Yale ticket id
+  // prevents duplicate leads from re-reads. For production set YALE_FROM=assaabloy.com.
+  const fromFilter = process.env.YALE_FROM || "naveeeen.nex@gmail.com";
+  const subjectFilter = process.env.YALE_SUBJECT; // optional, e.g. "CALL LOG"
   const sinceDays = Number(process.env.YALE_SINCE_DAYS || 7);
   const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
 
@@ -49,11 +49,9 @@ export async function runYaleInboxPoll(supabase: SupabaseClient): Promise<PollSu
   try {
     const lock = await client.getMailboxLock("INBOX");
     try {
-      const criteria: { subject: string; since: Date; from?: string } = {
-        subject: subjectFilter,
-        since,
-      };
+      const criteria: { since: Date; from?: string; subject?: string } = { since };
       if (fromFilter) criteria.from = fromFilter;
+      if (subjectFilter) criteria.subject = subjectFilter;
       const uids = (await client.search(criteria, { uid: true })) || [];
 
       for (const uid of uids) {
